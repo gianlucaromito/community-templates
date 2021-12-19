@@ -1,0 +1,635 @@
+zabbix_export:
+  version: '5.4'
+  date: '2021-12-19T11:03:08Z'
+  groups:
+    -
+      uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    -
+      uuid: 4927c56fa7ce4bb6b48902bc82345db5
+      template: 'Template Synology Active Backup for Business'
+      name: 'Template Synology Active Backup for Business'
+      groups:
+        -
+          name: Templates
+      discovery_rules:
+        -
+          uuid: e0a8f4520e4246708455f3b9e7076a9b
+          name: 'Active Backup for Business VM task discovery'
+          type: SSH
+          key: 'ssh.run[ActiveBackupDiscovery,{HOST.DNS},22,]'
+          delay: 1h
+          params: 'cat {$PATH_ACTIVEBACKUPHOST_CSV}'
+          username: '{$SSH_USERNAME}'
+          password: '{$SSH_PASSWORD}'
+          filter:
+            conditions:
+              -
+                macro: '{#BACKUP.TYPE}'
+                value: '1'
+                formulaid: A
+          lifetime: 1d
+          description: 'This discovery rule will discover all VM backup tasks in Active Backup for Business'
+          item_prototypes:
+            -
+              uuid: 404d18df17f54a7fa4240830a90e7969
+              name: 'VM Backup ''{#DEVICE.NAME}''  - Status'
+              type: SSH
+              key: 'ssh.run[vm.backup.{#DEVICE.NAME},{HOST.DNS},22,]'
+              delay: 10m
+              history: 7d
+              params: 'awk -F'','' ''{ if ($1 == "{#DEVICE.ID}") { print $3 } }'' {$PATH_ACTIVEBACKUPRESULT_CSV}'
+              username: '{$SSH_USERNAME}'
+              password: '{$SSH_PASSWORD}'
+              description: |
+                This item gets the status of the backup task from the CSV file.
+                1 = In progress
+                2 = Successful
+                3 = Cancelled
+                4 = Failed
+                5 = Warning
+                8 = Partial success
+              valuemap:
+                name: 'Synology Active Backup for Business'
+              tags:
+                -
+                  tag: Application
+                  value: 'Active Backup for Business'
+              trigger_prototypes:
+                -
+                  uuid: 89cc7f42bd99402294be24de59427395
+                  expression: 'last(/Template Synology Active Backup for Business/ssh.run[vm.backup.{#DEVICE.NAME},{HOST.DNS},22,])>3'
+                  name: 'VM Backup operation error ''{#DEVICE.NAME}'''
+                  opdata: 'Last status: {ITEM.LASTVALUE}'
+                  manual_close: 'YES'
+                  tags:
+                    -
+                      tag: BACKUP
+            -
+              uuid: f45374d37d3c46079759ebf73b062f8e
+              name: 'VM Backup ''{#DEVICE.NAME}'' - Transferred data'
+              type: SSH
+              key: 'ssh.run[vm.backup.{#DEVICE.NAME}.datatransfer,{HOST.DNS},22,]'
+              delay: 10m
+              history: 7d
+              units: B
+              params: 'awk -F'','' ''{ if ($1 == "{#DEVICE.ID}") { print $4 } }'' {$PATH_ACTIVEBACKUPRESULT_CSV}'
+              username: '{$SSH_USERNAME}'
+              password: '{$SSH_PASSWORD}'
+              tags:
+                -
+                  tag: Application
+                  value: 'Active Backup for Business'
+            -
+              uuid: da321d0416b34dd2ae9c24cd0463cd86
+              name: 'VM Backup ''{#DEVICE.NAME}'' - End time'
+              type: SSH
+              key: 'ssh.run[vm.backup.{#DEVICE.NAME}.end.time,{HOST.DNS},22,]'
+              delay: 10m
+              history: 7d
+              units: unixtime
+              params: 'awk -F'','' ''{ if ($1 == "{#DEVICE.ID}") { print $6 } }'' {$PATH_ACTIVEBACKUPRESULT_CSV}'
+              username: '{$SSH_USERNAME}'
+              password: '{$SSH_PASSWORD}'
+              tags:
+                -
+                  tag: Application
+                  value: 'Active Backup for Business'
+            -
+              uuid: 222e47906a284782b5a3616b93a89b42
+              name: 'VM Backup ''{#DEVICE.NAME}'' - Start time'
+              type: SSH
+              key: 'ssh.run[vm.backup.{#DEVICE.NAME}.start.time,{HOST.DNS},22,]'
+              delay: 10m
+              history: 7d
+              units: unixtime
+              params: 'awk -F'','' ''{ if ($1 == "{#DEVICE.ID}") { print $5 } }'' {$PATH_ACTIVEBACKUPRESULT_CSV}'
+              username: '{$SSH_USERNAME}'
+              password: '{$SSH_PASSWORD}'
+              tags:
+                -
+                  tag: Application
+                  value: 'Active Backup for Business'
+          lld_macro_paths:
+            -
+              lld_macro: '{#BACKUP.TYPE}'
+              path: $.backup_type
+            -
+              lld_macro: '{#DEVICE.ID}'
+              path: $.device_id
+            -
+              lld_macro: '{#DEVICE.NAME}'
+              path: $.host_name
+          preprocessing:
+            -
+              type: CSV_TO_JSON
+              parameters:
+                - ''
+                - ''
+                - '1'
+        -
+          uuid: 76f1f66341794735a3e50de625cd0425
+          name: 'Active Backup for Business PC task discovery'
+          type: SSH
+          key: 'ssh.run[ActiveBackupDiscoveryPC,{HOST.DNS},22,]'
+          delay: 1h
+          params: 'cat {$PATH_ACTIVEBACKUPHOST_CSV}'
+          username: '{$SSH_USERNAME}'
+          password: '{$SSH_PASSWORD}'
+          filter:
+            conditions:
+              -
+                macro: '{#BACKUP.TYPE}'
+                value: '2'
+                formulaid: A
+          lifetime: 1d
+          description: 'This discovery rule will discover all PC backup tasks in Active Backup for Business'
+          item_prototypes:
+            -
+              uuid: 5c6a60e3efe44b2ab689215e4713970f
+              name: 'PC Backup ''{#DEVICE.NAME}''  - Status'
+              type: SSH
+              key: 'ssh.run[pc.backup.{#DEVICE.NAME},{HOST.DNS},22,]'
+              delay: 10m
+              history: 7d
+              params: 'awk -F'','' ''{ if ($1 == "{#DEVICE.ID}") { print $3 } }'' {$PATH_ACTIVEBACKUPRESULT_CSV}'
+              username: '{$SSH_USERNAME}'
+              password: '{$SSH_PASSWORD}'
+              valuemap:
+                name: 'Synology Active Backup for Business'
+              tags:
+                -
+                  tag: Application
+                  value: 'Active Backup for Business'
+              trigger_prototypes:
+                -
+                  uuid: 185d3bc987ac40f7896f562a14470ba6
+                  expression: 'nodata(/Template Synology Active Backup for Business/ssh.run[pc.backup.{#DEVICE.NAME},{HOST.DNS},22,],10d)=1'
+                  name: 'PC Backup missing for 10 day ''{#DEVICE.NAME}'''
+                  opdata: 'Last status: {ITEM.LASTVALUE}'
+                  manual_close: 'YES'
+                  tags:
+                    -
+                      tag: BACKUP
+                -
+                  uuid: dc62eb1b929047489b99def58f0684b0
+                  expression: 'last(/Template Synology Active Backup for Business/ssh.run[pc.backup.{#DEVICE.NAME},{HOST.DNS},22,])>3'
+                  name: 'PC Backup operation error ''{#DEVICE.NAME}'''
+                  opdata: 'Last status: {ITEM.LASTVALUE}'
+                  manual_close: 'YES'
+                  tags:
+                    -
+                      tag: BACKUP
+            -
+              uuid: f258f1fe127049cba1e986e66ef897c9
+              name: 'PC Backup ''{#DEVICE.NAME}'' - Transferred data'
+              type: SSH
+              key: 'ssh.run[pc.backup.{#DEVICE.NAME}.datatransfer,{HOST.DNS},22,]'
+              delay: 10m
+              history: 7d
+              units: B
+              params: 'awk -F'','' ''{ if ($1 == "{#DEVICE.ID}") { print $4 } }'' {$PATH_ACTIVEBACKUPRESULT_CSV}'
+              username: '{$SSH_USERNAME}'
+              password: '{$SSH_PASSWORD}'
+              valuemap:
+                name: 'Synology Active Backup for Business'
+              tags:
+                -
+                  tag: Application
+                  value: 'Active Backup for Business'
+            -
+              uuid: 19ac9cded8264eeaa79f8f63e7e93455
+              name: 'PC Backup ''{#DEVICE.NAME}'' - End time'
+              type: SSH
+              key: 'ssh.run[pc.backup.{#DEVICE.NAME}.end.time,{HOST.DNS},22,]'
+              delay: 10m
+              history: 7d
+              units: unixtime
+              params: 'awk -F'','' ''{ if ($1 == "{#DEVICE.ID}") { print $6 } }'' {$PATH_ACTIVEBACKUPRESULT_CSV}'
+              username: '{$SSH_USERNAME}'
+              password: '{$SSH_PASSWORD}'
+              valuemap:
+                name: 'Synology Active Backup for Business'
+              tags:
+                -
+                  tag: Application
+                  value: 'Active Backup for Business'
+            -
+              uuid: 40bd975dd69443049e689ed6de32cc81
+              name: 'PC Backup ''{#DEVICE.NAME}'' - Start time'
+              type: SSH
+              key: 'ssh.run[pc.backup.{#DEVICE.NAME}.start.time,{HOST.DNS},22,]'
+              delay: 10m
+              history: 7d
+              units: unixtime
+              params: 'awk -F'','' ''{ if ($1 == "{#DEVICE.ID}") { print $5 } }'' {$PATH_ACTIVEBACKUPRESULT_CSV}'
+              username: '{$SSH_USERNAME}'
+              password: '{$SSH_PASSWORD}'
+              valuemap:
+                name: 'Synology Active Backup for Business'
+              tags:
+                -
+                  tag: Application
+                  value: 'Active Backup for Business'
+          lld_macro_paths:
+            -
+              lld_macro: '{#BACKUP.TYPE}'
+              path: $.backup_type
+            -
+              lld_macro: '{#DEVICE.ID}'
+              path: $.device_id
+            -
+              lld_macro: '{#DEVICE.NAME}'
+              path: $.host_name
+          preprocessing:
+            -
+              type: CSV_TO_JSON
+              parameters:
+                - ''
+                - ''
+                - '1'
+        -
+          uuid: bafbe230923f45ec8197a0fa6f1c2e9c
+          name: 'Active Backup for Business Physical Server task discovery'
+          type: SSH
+          key: 'ssh.run[ActiveBackupDiscoveryPS,{HOST.DNS},22,]'
+          delay: 1h
+          params: 'cat {$PATH_ACTIVEBACKUPHOST_CSV}'
+          username: '{$SSH_USERNAME}'
+          password: '{$SSH_PASSWORD}'
+          filter:
+            conditions:
+              -
+                macro: '{#BACKUP.TYPE}'
+                value: '3'
+                formulaid: A
+          lifetime: 1d
+          description: 'This discovery rule will discover all physical server backup tasks in Active Backup for Business'
+          item_prototypes:
+            -
+              uuid: ad2cc9e034ad42d885a898931e2e3001
+              name: 'Physical Server Backup ''{#DEVICE.NAME}''  - Status'
+              type: SSH
+              key: 'ssh.run[ps.backup.{#DEVICE.NAME},{HOST.DNS},22,]'
+              delay: 10m
+              history: 7d
+              params: 'awk -F'','' ''{ if ($1 == "{#DEVICE.ID}") { print $3 } }'' {$PATH_ACTIVEBACKUPRESULT_CSV}'
+              username: '{$SSH_USERNAME}'
+              password: '{$SSH_PASSWORD}'
+              valuemap:
+                name: 'Synology Active Backup for Business'
+              tags:
+                -
+                  tag: Application
+                  value: 'Active Backup for Business'
+              trigger_prototypes:
+                -
+                  uuid: 30a939ca1a13440680493c4e0d7958ea
+                  expression: 'last(/Template Synology Active Backup for Business/ssh.run[ps.backup.{#DEVICE.NAME},{HOST.DNS},22,])>3'
+                  name: 'Physical Server Backup operation error ''{#DEVICE.NAME}'''
+                  opdata: 'Last status: {ITEM.LASTVALUE}'
+                  manual_close: 'YES'
+                  tags:
+                    -
+                      tag: BACKUP
+            -
+              uuid: e3b31807984746a48485c17926c0d57e
+              name: 'Physical Server Backup ''{#DEVICE.NAME}'' - Transferred data'
+              type: SSH
+              key: 'ssh.run[ps.backup.{#DEVICE.NAME}.datatransfer,{HOST.DNS},22,]'
+              delay: 10m
+              history: 7d
+              units: B
+              params: 'awk -F'','' ''{ if ($1 == "{#DEVICE.ID}") { print $4 } }'' {$PATH_ACTIVEBACKUPRESULT_CSV}'
+              username: '{$SSH_USERNAME}'
+              password: '{$SSH_PASSWORD}'
+              valuemap:
+                name: 'Synology Active Backup for Business'
+              tags:
+                -
+                  tag: Application
+                  value: 'Active Backup for Business'
+            -
+              uuid: f49d4149913b4143a29edd5b7d2238e5
+              name: 'Physical Server Backup ''{#DEVICE.NAME}'' - End time'
+              type: SSH
+              key: 'ssh.run[ps.backup.{#DEVICE.NAME}.end.time,{HOST.DNS},22,]'
+              delay: 10m
+              units: unixtime
+              params: 'awk -F'','' ''{ if ($1 == "{#DEVICE.ID}") { print $6 } }'' {$PATH_ACTIVEBACKUPRESULT_CSV}'
+              username: '{$SSH_USERNAME}'
+              password: '{$SSH_PASSWORD}'
+              valuemap:
+                name: 'Synology Active Backup for Business'
+              tags:
+                -
+                  tag: Application
+                  value: 'Active Backup for Business'
+            -
+              uuid: d1b7772052114f57806ddb3744eb372b
+              name: 'Physical Server Backup ''{#DEVICE.NAME}'' - Start time'
+              type: SSH
+              key: 'ssh.run[ps.backup.{#DEVICE.NAME}.start.time,{HOST.DNS},22,]'
+              delay: 10m
+              history: 7d
+              units: unixtime
+              params: 'awk -F'','' ''{ if ($1 == "{#DEVICE.ID}") { print $5 } }'' {$PATH_ACTIVEBACKUPRESULT_CSV}'
+              username: '{$SSH_USERNAME}'
+              password: '{$SSH_PASSWORD}'
+              valuemap:
+                name: 'Synology Active Backup for Business'
+              tags:
+                -
+                  tag: Application
+                  value: 'Active Backup for Business'
+          lld_macro_paths:
+            -
+              lld_macro: '{#BACKUP.TYPE}'
+              path: $.backup_type
+            -
+              lld_macro: '{#DEVICE.ID}'
+              path: $.device_id
+            -
+              lld_macro: '{#DEVICE.NAME}'
+              path: $.host_name
+          preprocessing:
+            -
+              type: CSV_TO_JSON
+              parameters:
+                - ''
+                - ''
+                - '1'
+        -
+          uuid: b18ae9df08ee447e8312d7bd9252b463
+          name: 'Active Backup for Business SMB task discovery'
+          type: SSH
+          key: 'ssh.run[ActiveBackupDiscoverySMB,{HOST.DNS},22,]'
+          delay: 1h
+          params: 'cat {$PATH_ACTIVEBACKUPHOST_CSV}'
+          username: '{$SSH_USERNAME}'
+          password: '{$SSH_PASSWORD}'
+          filter:
+            conditions:
+              -
+                macro: '{#BACKUP.TYPE}'
+                value: '4'
+                formulaid: A
+          lifetime: 1d
+          description: 'This discovery rule will discover all SMB backup tasks in Active Backup for Business'
+          item_prototypes:
+            -
+              uuid: f0889558acd64db69f4cd8bb67998cc8
+              name: 'SMB Backup ''{#DEVICE.NAME}''  - Status'
+              type: SSH
+              key: 'ssh.run[smb.backup.{#DEVICE.NAME},{HOST.DNS},22,]'
+              delay: 10m
+              history: 7d
+              params: 'awk -F'','' ''{ if ($1 == "{#DEVICE.ID}") { print $3 } }'' {$PATH_ACTIVEBACKUPRESULT_CSV}'
+              username: '{$SSH_USERNAME}'
+              password: '{$SSH_PASSWORD}'
+              valuemap:
+                name: 'Synology Active Backup for Business'
+              tags:
+                -
+                  tag: Application
+                  value: 'Active Backup for Business'
+              trigger_prototypes:
+                -
+                  uuid: b363d4de59ad4a7ea403a89968105dc6
+                  expression: 'last(/Template Synology Active Backup for Business/ssh.run[smb.backup.{#DEVICE.NAME},{HOST.DNS},22,])>3'
+                  name: 'SMB Backup operation error ''{#DEVICE.NAME}'''
+                  opdata: 'Last status: {ITEM.LASTVALUE}'
+                  manual_close: 'YES'
+                  tags:
+                    -
+                      tag: BACKUP
+            -
+              uuid: f661cdf23f1b459aa4ebe16b9a5c78f0
+              name: 'SMB Backup ''{#DEVICE.NAME}'' - Transferred data'
+              type: SSH
+              key: 'ssh.run[smb.backup.{#DEVICE.NAME}.datatransfer,{HOST.DNS},22,]'
+              delay: 10m
+              history: 7d
+              units: B
+              params: 'awk -F'','' ''{ if ($1 == "{#DEVICE.ID}") { print $4 } }'' {$PATH_ACTIVEBACKUPRESULT_CSV}'
+              username: '{$SSH_USERNAME}'
+              password: '{$SSH_PASSWORD}'
+              valuemap:
+                name: 'Synology Active Backup for Business'
+              tags:
+                -
+                  tag: Application
+                  value: 'Active Backup for Business'
+            -
+              uuid: 5af958e8b1ee469381d83ba3e95ef26d
+              name: 'SMB Backup ''{#DEVICE.NAME}'' - End time'
+              type: SSH
+              key: 'ssh.run[smb.backup.{#DEVICE.NAME}.end.time,{HOST.DNS},22,]'
+              delay: 10m
+              history: 7d
+              units: unixtime
+              params: 'awk -F'','' ''{ if ($1 == "{#DEVICE.ID}") { print $6 } }'' {$PATH_ACTIVEBACKUPRESULT_CSV}'
+              username: '{$SSH_USERNAME}'
+              password: '{$SSH_PASSWORD}'
+              valuemap:
+                name: 'Synology Active Backup for Business'
+              tags:
+                -
+                  tag: Application
+                  value: 'Active Backup for Business'
+            -
+              uuid: ec1392e837c24d9daab20ae75a2ef1ec
+              name: 'SMB Backup ''{#DEVICE.NAME}'' - Start time'
+              type: SSH
+              key: 'ssh.run[smb.backup.{#DEVICE.NAME}.start.time,{HOST.DNS},22,]'
+              delay: 10m
+              history: 7d
+              units: unixtime
+              params: 'awk -F'','' ''{ if ($1 == "{#DEVICE.ID}") { print $5 } }'' {$PATH_ACTIVEBACKUPRESULT_CSV}'
+              username: '{$SSH_USERNAME}'
+              password: '{$SSH_PASSWORD}'
+              valuemap:
+                name: 'Synology Active Backup for Business'
+              tags:
+                -
+                  tag: Application
+                  value: 'Active Backup for Business'
+          lld_macro_paths:
+            -
+              lld_macro: '{#BACKUP.TYPE}'
+              path: $.backup_type
+            -
+              lld_macro: '{#DEVICE.ID}'
+              path: $.device_id
+            -
+              lld_macro: '{#DEVICE.NAME}'
+              path: $.host_name
+          preprocessing:
+            -
+              type: CSV_TO_JSON
+              parameters:
+                - ''
+                - ''
+                - '1'
+      macros:
+        -
+          macro: '{$PATH_ACTIVEBACKUPHOST_CSV}'
+          description: 'Path to Active Backup Host export file'
+        -
+          macro: '{$PATH_ACTIVEBACKUPRESULT_CSV}'
+          description: 'Path to Active Backup CSV export file'
+        -
+          macro: '{$SSH_PASSWORD}'
+          description: 'Synology SSH password'
+        -
+          macro: '{$SSH_USERNAME}'
+          description: 'Synology SSH username'
+      valuemaps:
+        -
+          uuid: f719bf46e47a480f9ba2cba98d4b8855
+          name: 'Synology Active Backup for Business'
+          mappings:
+            -
+              value: '1'
+              newvalue: 'In progress'
+            -
+              value: '2'
+              newvalue: Successful
+            -
+              value: '3'
+              newvalue: Cancelled
+            -
+              value: '4'
+              newvalue: Failed
+            -
+              value: '5'
+              newvalue: Warning
+            -
+              value: '8'
+              newvalue: 'Partial success'
+    -
+      uuid: 4036bee0c3c242a2a6f170b7abdbdeeb
+      template: 'Template Synology HyperBackup'
+      name: 'Template Synology HyperBackup'
+      groups:
+        -
+          name: Templates
+      discovery_rules:
+        -
+          uuid: 8c30193d25f54ac9a9064961cdd7df92
+          name: 'Hyperbackup jobs'
+          type: SSH
+          key: 'ssh.run[hyperbackupJobs,{HOST.DNS},22,]'
+          delay: 4h
+          params: |
+            bck=$(sudo grep -oP '(?<=Backup task ).*?(?= completes)' /var/log/messages)
+            bck="${bck//]/],}"
+            echo $bck
+          username: '{$SSH_USERNAME}'
+          password: '{$SSH_PASSWORD}'
+          item_prototypes:
+            -
+              uuid: bfebf3d0011046b4b4fd181d336822dc
+              name: 'Hyperbackup {#BACKUP.NAME}'
+              type: SSH
+              key: 'ssh.run[hyperbackup.{#BACKUP.NAME}.date,{HOST.DNS},22,]'
+              delay: 5m
+              units: unixtime
+              params: |
+                message=$(sudo grep "{#BACKUP.NAME}" /var/log/messages | grep -w 'with result \[[1]\]' | tail -n1)
+                timeStamp=$(echo $message | grep -P '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9]' -o)
+                
+                backupDate=$(date --date "$timeStamp"Z +'%s')
+                echo $backupDate
+              username: '{$SSH_USERNAME}'
+              password: '{$SSH_PASSWORD}'
+              tags:
+                -
+                  tag: Application
+                  value: BACKUP
+            -
+              uuid: 42b2b97a437242e79573cc5c8e5b4393
+              name: 'Hyperbackup {#BACKUP.NAME} length'
+              type: SSH
+              key: 'ssh.run[hyperbackup.{#BACKUP.NAME}.length,{HOST.DNS},22,]'
+              delay: 5m
+              units: s
+              params: |
+                message=$(sudo grep "{#BACKUP.NAME}" /var/log/messages | grep -w 'with result \[[1]\]' | tail -n1)
+                echo $message | grep -P '(?<=\[)\d*(?= sec\])' -o
+              username: '{$SSH_USERNAME}'
+              password: '{$SSH_PASSWORD}'
+              tags:
+                -
+                  tag: Application
+                  value: BACKUP
+            -
+              uuid: d7f759c371444663a2088c4f675dbafb
+              name: 'Hyperbackup {#BACKUP.NAME} result'
+              type: SSH
+              key: 'ssh.run[hyperbackup.{#BACKUP.NAME}.result,{HOST.DNS},22,]'
+              delay: 5m
+              params: |
+                message=$(sudo grep "{#BACKUP.NAME}" /var/log/messages | grep -w 'with result' | tail -n1)
+                echo $message | grep -P '(?<=\[)\d(?=\])' -o
+              username: '{$SSH_USERNAME}'
+              password: '{$SSH_PASSWORD}'
+              valuemap:
+                name: 'Hyperbackup Status'
+              tags:
+                -
+                  tag: Application
+                  value: BACKUP
+              trigger_prototypes:
+                -
+                  uuid: d7b958a27365416cbb520ea9897fa054
+                  expression: 'last(/Template Synology HyperBackup/ssh.run[hyperbackup.{#BACKUP.NAME}.result,{HOST.DNS},22,])<>1'
+                  name: 'HyperBackup {#BACKUP.NAME} Failed on {DNS.NAME}'
+                  priority: AVERAGE
+          lld_macro_paths:
+            -
+              lld_macro: '{#BACKUP.NAME}'
+              path: $.1
+          preprocessing:
+            -
+              type: STR_REPLACE
+              parameters:
+                - '['
+                - ''
+            -
+              type: STR_REPLACE
+              parameters:
+                - ']'
+                - ''
+            -
+              type: JAVASCRIPT
+              parameters:
+                - |
+                  var newStr = value.substring(0, value.length - 1);
+                  const myArray = newStr.split(", ");
+                  
+                  function onlyUnique(value, index, self) {
+                    return self.indexOf(value) === index;
+                  }
+                  
+                  var unique = myArray.filter(onlyUnique);
+                  risultato = unique.join('\n');
+                  return risultato;
+            -
+              type: CSV_TO_JSON
+              parameters:
+                - ''
+                - ''
+                - '0'
+      valuemaps:
+        -
+          uuid: ccfb6a5a03ca4694b471a6e764f1583f
+          name: 'Hyperbackup Status'
+          mappings:
+            -
+              value: '1'
+              newvalue: OK
+            -
+              type: DEFAULT
+              newvalue: 'Not OK'
